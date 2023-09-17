@@ -1,0 +1,199 @@
+package com.inmar.app.service;
+
+import com.inmar.app.dto.response.*;
+import com.inmar.app.exception.MetaDataNotFoundException;
+import com.inmar.app.jpa.model.*;
+import com.inmar.app.repository.MetaDataRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.stereotype.Component;
+import org.springframework.util.FileCopyUtils;
+import org.springframework.util.StringUtils;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Component
+public class MetaDataService {
+
+    Logger logger = LoggerFactory.getLogger(MetaDataService.class);
+    @Autowired
+    private MetaDataRepository metaDataRepository;
+    @Autowired
+    private LocationService locationService;
+    @Autowired
+    private DepartmentService departmentService;
+    @Autowired
+    private CategoryService categoryService;
+    @Autowired
+    private SubCategoryService subCategoryService;
+
+    /**
+     * this method used for save the metadata
+     * @return
+     */
+    public String savedMetaData() {
+        List<String> rowsOfMetaData = getMetaDataFromFile();
+        logger.info("metadata loaded from file "+ rowsOfMetaData);
+        rowsOfMetaData.remove(0);
+        if (rowsOfMetaData.isEmpty()) {
+            throw new MetaDataNotFoundException("metadata not found in the given file");
+        }
+
+        //Delete meteData and its related data if any exists in Database
+
+        locationService.deleteAllLocations();
+        departmentService.deleteAllDepartments();
+        categoryService.deleteAllCategories();
+        subCategoryService.deleteAllSubCategories();
+        metaDataRepository.deleteAll();
+
+        rowsOfMetaData.stream().filter(metaDataRow -> !StringUtils.isEmpty(metaDataRow)).forEach(metaDataRow -> {
+            List<String> columns = Arrays.asList(metaDataRow.split(","));
+            MetaData metaData = new MetaData();
+            if (!columns.isEmpty()) {
+                metaData.setLocation(columns.get(0));
+                metaData.setDepartment(columns.get(1));
+                metaData.setCategory(columns.get(2));
+                metaData.setSubcategory(columns.get(3));
+                metaDataRepository.save(metaData);
+                logger.info("metadata object saved successfully");
+                saveOtherDetailsOfMetaData(columns);
+
+            }
+        });
+        logger.info("exit savedMetaData() without any issue");
+        return "Metadata loaded sucessfully";
+
+    }
+
+    /**
+     * this method used for getDepartmentFromMetadata
+     * @param locationId
+     * @return
+     */
+    public DepartmentsResponse getDepartmentFromMetadata(long locationId) {
+        logger.info("entered into getDepartmentFromMetadata()");
+        DepartmentsResponse response = new DepartmentsResponse();
+        Location locationData = locationService.getLocationById(locationId);
+        if (Objects.nonNull(locationData)) {
+            List<String> metadata = metaDataRepository.findDepartmentsFromMetaData(locationData.getLocation())
+                    .stream()
+                    .distinct()
+                    .collect(Collectors.toList());
+            List<Department> departments = metadata
+                    .stream()
+                    .filter(meta -> meta != null && !StringUtils.isEmpty(meta))
+                    .map(meta -> departmentService.getDepartmentByName(meta))
+                    .collect(Collectors.toList());
+            List<DepartmentResponse> departmentResponses = departments
+                    .stream()
+                    .map(dept -> new DepartmentResponse(dept.getDepartmentId(), dept.getDepartment(), dept.getDescription()))
+                    .collect(Collectors.toList());
+            response.setDepartments(departmentResponses);
+        } else {
+            validateMetadata(new ArrayList<>());
+        }
+        logger.info("fetched departments data and it returns the DepartmentsResponse object");
+        return response;
+    }
+
+    public CategoriesResponse getCategoriesFromMetadata(long locationId, long departmentId) {
+        logger.info("entered into getCategoriesFromMetadata()");
+        CategoriesResponse response = new CategoriesResponse();
+        Location locationData = locationService.getLocationById(locationId);
+        Department departmentData = departmentService.getDepartmentById(departmentId);
+        if (Objects.nonNull(locationData) && Objects.nonNull(departmentData)) {
+            List<String> metadata = metaDataRepository.findCategoriesFromMetaData(locationData.getLocation(), departmentData.getDepartment())
+                    .stream()
+                    .distinct()
+                    .collect(Collectors.toList());
+            List<Category> categories = metadata
+                    .stream()
+                    .filter(meta -> Objects.nonNull(meta) && !StringUtils.isEmpty(meta))
+                    .map(meta -> categoryService.getCategoryByName(meta))
+                    .collect(Collectors.toList());
+            List<CategoryResponse> departmentResponses = categories
+                    .stream()
+                    .map(cat -> new CategoryResponse(cat.getCategoryId(), cat.getCategory(), cat.getDescription()))
+                    .collect(Collectors.toList());
+            response.setCategories(departmentResponses);
+        } else {
+            validateMetadata(new ArrayList<>());
+        }
+        logger.info("fetched categories data and it returns the CategoriesResponse object");
+        return response;
+    }
+
+    /**
+     *
+     * @param locationId
+     * @param departmentId
+     * @param categoryId
+     * @param subCategoryId
+     * @return
+     */
+    public MetadataDetailsResponse getMetaDataFromParameters(long locationId, long departmentId, long categoryId, long subCategoryId) {
+        logger.info("entered into getMetaDataFromParameters()");
+        MetadataDetailsResponse response = new MetadataDetailsResponse();
+        Location locationData = locationService.getLocationById(locationId);
+        Department departmentData = departmentService.getDepartmentById(departmentId);
+        Category categoryData = categoryService.getCategoryById(categoryId);
+        SubCategory subCategoryData = subCategoryService.getSubCategoryById(subCategoryId);
+        if (Objects.nonNull(locationData) && Objects.nonNull(departmentData) && Objects.nonNull(categoryData) && Objects.nonNull(subCategoryData)) {
+            List<MetaData> metadata = metaDataRepository.findMetaDataDetails(locationData.getLocation(), departmentData.getDepartment(), categoryData.getCategory(), subCategoryData.getSubCategory());
+            List<MetadataResponse> metaDataResponse = metadata
+                    .stream()
+                    .map(meta -> new MetadataResponse(meta.getMetaDataId(), meta.getLocation(), meta.getDepartment(), meta.getCategory(), meta.getSubcategory()))
+                    .collect(Collectors.toList());
+            validateMetadata(metaDataResponse);
+            response.setMetadataDetails(metaDataResponse);
+        } else {
+            validateMetadata(new ArrayList<>());
+        }
+        logger.info("fetched metadata data and it returns the metaDataResponse object");
+        return response;
+    }
+
+    private void validateMetadata(List<MetadataResponse> metadata) {
+        if (metadata.isEmpty()) {
+            logger.error("metadata details are not found for the given input request");
+            throw new MetaDataNotFoundException("Metadata Not found for the requested Parameters");
+        }
+
+    }
+
+    private void saveOtherDetailsOfMetaData(List<String> columns) {
+        if (!StringUtils.isEmpty(columns.get(0))) {
+            locationService.saveAllLocation(columns.get(0));
+        }
+        if (!StringUtils.isEmpty(columns.get(1))) {
+            departmentService.saveDepartment(columns.get(1));
+        }
+        if (!StringUtils.isEmpty(columns.get(2))) {
+            categoryService.saveCategory(columns.get(2));
+        }
+        if (!StringUtils.isEmpty(columns.get(3))) {
+            subCategoryService.saveSubCategoryData(columns.get(3));
+        }
+    }
+
+    public List<String> getMetaDataFromFile() {
+        try {
+            ClassPathResource classPathResource = new ClassPathResource("common/metadata.txt");
+            byte[] data = FileCopyUtils.copyToByteArray(classPathResource.getInputStream());
+            String metaData = new String(data, StandardCharsets.UTF_8);
+            if (!StringUtils.isEmpty(metaData)) {
+                return new LinkedList<>(Arrays.asList(metaData.split("\\n")));
+            }
+        } catch (IOException ex) {
+            logger.error("metadata file not identified"+ ex.getMessage());
+        }
+
+        return new LinkedList<>();
+    }
+}
