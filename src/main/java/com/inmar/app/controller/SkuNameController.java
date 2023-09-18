@@ -15,12 +15,7 @@ public class SkuNameController {
     @Autowired
     private SKUDataService skuDataService;
 
- /*   @GetMapping("/load")
-    public ResponseEntity<?> loadSkuData(){
 
-        return new ResponseEntity<>(skuDataService.persistSkuData(), HttpStatus.OK);
-    }
-*/
     @PostMapping("/")
     public ResponseEntity<?> getSkuDetailsByMetaData(@RequestBody MetaDataRequest request){
 

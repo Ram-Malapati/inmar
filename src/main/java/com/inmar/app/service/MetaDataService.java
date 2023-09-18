@@ -32,45 +32,7 @@ public class MetaDataService {
     @Autowired
     private SubCategoryService subCategoryService;
 
-    /**
-     * this method used for save the metadata
-     * @return
-     */
-   /* public String savedMetaData() {
-        List<String> rowsOfMetaData = getMetaDataFromFile();
-        logger.info("metadata loaded from file "+ rowsOfMetaData);
-        rowsOfMetaData.remove(0);
-        if (rowsOfMetaData.isEmpty()) {
-            throw new MetaDataNotFoundException("metadata not found in the given file");
-        }
 
-        //Delete meteData and its related data if any exists in Database
-
-        locationService.deleteAllLocations();
-        departmentService.deleteAllDepartments();
-        categoryService.deleteAllCategories();
-        subCategoryService.deleteAllSubCategories();
-        metaDataRepository.deleteAll();
-
-        rowsOfMetaData.stream().filter(metaDataRow -> !StringUtils.isEmpty(metaDataRow)).forEach(metaDataRow -> {
-            List<String> columns = Arrays.asList(metaDataRow.split(","));
-            MetaData metaData = new MetaData();
-            if (!columns.isEmpty()) {
-                metaData.setLocation(columns.get(0));
-                metaData.setDepartment(columns.get(1));
-                metaData.setCategory(columns.get(2));
-                metaData.setSubcategory(columns.get(3));
-                metaDataRepository.save(metaData);
-                logger.info("metadata object saved successfully");
-                saveOtherDetailsOfMetaData(columns);
-
-            }
-        });
-        logger.info("exit savedMetaData() without any issue");
-        return "Metadata loaded sucessfully";
-
-    }
-*/
     /**
      * this method used for getDepartmentFromMetadata
      * @param locationId
@@ -167,33 +129,5 @@ public class MetaDataService {
 
     }
 
-   /* private void saveOtherDetailsOfMetaData(List<String> columns) {
-        if (!StringUtils.isEmpty(columns.get(0))) {
-            locationService.saveAllLocation(columns.get(0));
-        }
-        if (!StringUtils.isEmpty(columns.get(1))) {
-            departmentService.saveDepartment(columns.get(1));
-        }
-        if (!StringUtils.isEmpty(columns.get(2))) {
-            categoryService.saveCategory(columns.get(2));
-        }
-        if (!StringUtils.isEmpty(columns.get(3))) {
-            subCategoryService.saveSubCategoryData(columns.get(3));
-        }
-    }*/
 
-  /*  public List<String> getMetaDataFromFile() {
-        try {
-            ClassPathResource classPathResource = new ClassPathResource("common/metadata.txt");
-            byte[] data = FileCopyUtils.copyToByteArray(classPathResource.getInputStream());
-            String metaData = new String(data, StandardCharsets.UTF_8);
-            if (!StringUtils.isEmpty(metaData)) {
-                return new LinkedList<>(Arrays.asList(metaData.split("\\n")));
-            }
-        } catch (IOException ex) {
-            logger.error("metadata file not identified"+ ex.getMessage());
-        }
-
-        return new LinkedList<>();
-    }*/
 }
