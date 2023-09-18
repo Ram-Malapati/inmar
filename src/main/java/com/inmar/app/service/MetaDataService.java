@@ -36,7 +36,7 @@ public class MetaDataService {
      * this method used for save the metadata
      * @return
      */
-    public String savedMetaData() {
+   /* public String savedMetaData() {
         List<String> rowsOfMetaData = getMetaDataFromFile();
         logger.info("metadata loaded from file "+ rowsOfMetaData);
         rowsOfMetaData.remove(0);
@@ -70,7 +70,7 @@ public class MetaDataService {
         return "Metadata loaded sucessfully";
 
     }
-
+*/
     /**
      * this method used for getDepartmentFromMetadata
      * @param locationId
@@ -167,7 +167,7 @@ public class MetaDataService {
 
     }
 
-    private void saveOtherDetailsOfMetaData(List<String> columns) {
+   /* private void saveOtherDetailsOfMetaData(List<String> columns) {
         if (!StringUtils.isEmpty(columns.get(0))) {
             locationService.saveAllLocation(columns.get(0));
         }
@@ -180,9 +180,9 @@ public class MetaDataService {
         if (!StringUtils.isEmpty(columns.get(3))) {
             subCategoryService.saveSubCategoryData(columns.get(3));
         }
-    }
+    }*/
 
-    public List<String> getMetaDataFromFile() {
+  /*  public List<String> getMetaDataFromFile() {
         try {
             ClassPathResource classPathResource = new ClassPathResource("common/metadata.txt");
             byte[] data = FileCopyUtils.copyToByteArray(classPathResource.getInputStream());
@@ -195,5 +195,5 @@ public class MetaDataService {
         }
 
         return new LinkedList<>();
-    }
+    }*/
 }

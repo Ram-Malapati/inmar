@@ -40,12 +40,12 @@ public class MetaDataController {
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
-    @GetMapping("/load")
+   /* @GetMapping("/load")
     public ResponseEntity<?> loadMetaData(){
 
         return new ResponseEntity<>(metaDataService.savedMetaData(), HttpStatus.OK);
     }
-
+*/
     @GetMapping("/{location_id}/department/{department_id}/category/{category_id}/subcategory/{subcategory_id}")
     public ResponseEntity<?> getCategoryMetaData(@PathVariable(value="location_id") long locationId, @PathVariable(value="department_id") long departmentId,@PathVariable(value="category_id") long categoryId,@PathVariable(value="subcategory_id") long subCategoryId) {
         MetadataDetailsResponse response = metaDataService.getMetaDataFromParameters(locationId,departmentId,categoryId,subCategoryId);

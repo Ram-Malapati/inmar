@@ -30,7 +30,7 @@ public class SKUDataService {
     @Autowired
     private SkuNameMapper skuDetailsMapper;
 
-    public String persistSkuData() {
+   /* public String persistSkuData() {
         List<String> rowsOfSkuData = skuDataFromFile();
         logger.info("metadata loaded from file "+ rowsOfSkuData);
         rowsOfSkuData.remove(0);
@@ -58,10 +58,10 @@ public class SKUDataService {
         logger.info("exit persistSkuData() without any issue");
         return "SkuData saved successfully";
     }
+*/
 
 
-
-    public List<String> skuDataFromFile() {
+  /*  public List<String> skuDataFromFile() {
         try {
             ClassPathResource classPathResource = new ClassPathResource("common/skudata.txt");
             byte[] data = FileCopyUtils.copyToByteArray(classPathResource.getInputStream());
@@ -73,7 +73,7 @@ public class SKUDataService {
             logger.error("SkuData file not identified"+ ex.getMessage());
         }
         return new LinkedList<>();
-    }
+    }*/
 
     /**
      * This method is used for SkuData details by using metadata
